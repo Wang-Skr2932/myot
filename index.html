@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover">
+<meta name="theme-color" content="#4f46e5">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="เวร & รายได้">
+<title>ระบบแจ้งเตือนเวร & Dashboard รายได้</title>
+<!-- ไอคอนแบบฝังในไฟล์ (SVG data URI) ไม่พึ่งพาไฟล์ภายนอก -->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%234f46e5'/%3E%3Ctext x='50' y='65' font-size='55' text-anchor='middle' fill='white' font-family='Arial'%3E%F0%9F%A9%BA%3C/text%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%234f46e5'/%3E%3Ctext x='50' y='65' font-size='55' text-anchor='middle' fill='white' font-family='Arial'%3E%F0%9F%A9%BA%3C/text%3E%3C/svg%3E">
+<link id="manifestLink" rel="manifest">
+<style>
+  :root{
+    --bg:#f3f5fa; --card:#ffffff; --text:#1d2433; --muted:#667085; --line:#e4e8f0;
+    --primary:#4f46e5; --primary-soft:#eef0ff;
+    --m:#f59e0b; --a:#2563eb; --n:#7c3aed;
+    --ok:#16a34a; --ok-soft:#e8f7ee; --warn:#ea580c; --warn-soft:#fff1e8;
+    --track:#e6e9f2; --shadow:0 2px 10px rgba(20,30,60,.07); --radius:16px;
+    --sat:env(safe-area-inset-top,0px); --sar:env(safe-area-inset-right,0px);
+    --sab:env(safe-area-inset-bottom,0px); --sal:env(safe-area-inset-left,0px);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0f1320; --card:#181d2f; --text:#e8ebf5; --muted:#9aa3ba; --line:#2a3148;
+      --primary:#818cf8; --primary-soft:#23284a; --ok:#4ade80; --ok-soft:#14301f;
+      --warn:#fb923c; --warn-soft:#3a2314; --track:#2a3148; --shadow:0 2px 12px rgba(0,0,0,.4);
+    }
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+  html{-webkit-text-size-adjust:100%; height:100%}
+  body{
+    margin:0; background:var(--bg); color:var(--text); min-height:100dvh;
+    font-family:"Sarabun","Noto Sans Thai","Leelawadee UI","Tahoma",system-ui,-apple-system,"Segoe UI",sans-serif;
+    font-size:16px; line-height:1.5; overscroll-behavior-y:contain;
+  }
+  button,input,select,textarea{font:inherit;color:inherit}
+  button{cursor:pointer; touch-action:manipulation; min-height:38px}
+  .app{
+    max-width:1200px;margin:0 auto;padding:14px;
+    padding-top:calc(14px + var(--sat)); padding-left:calc(14px + var(--sal)); padding-right:calc(14px + var(--sar));
+    padding-bottom:calc(14px + var(--sab));
+  }
+  .topbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:12px}
+  .topbar h1{font-size:1.35rem;margin:0}
+  .toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  .btn{
+    border:1px solid var(--line);background:var(--card);padding:8px 14px;border-radius:10px;
+    transition:.15s;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;
+    touch-action:manipulation; min-height:40px
+  }
+  .btn:active{transform:scale(.96)}
+  .btn:hover{border-color:var(--primary);color:var(--primary)}
+  .btn.primary{background:var(--primary);color:#fff;border-color:var(--primary)}
+  .btn.primary:hover{opacity:.9;color:#fff}
+  .btn.danger{color:#dc2626;border-color:#f3b4b4}
+  .btn.sm{padding:4px 10px;font-size:.85rem;border-radius:8px;min-height:32px}
+  .btn.install{background:var(--ok);color:#fff;border-color:var(--ok)}
+  .monthnav{display:flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:4px;touch-action:pan-y}
+  .monthnav .label{min-width:140px;text-align:center;font-weight:700}
+  .monthnav .btn{border:none;padding:6px 14px;min-width:44px;justify-content:center}
+  .bell{position:relative}
+  .badge-dot{
+    position:absolute;top:-6px;right:-6px;background:#ef4444;color:#fff;border-radius:999px;
+    font-size:.7rem;min-width:18px;height:18px;display:grid;place-items:center;padding:0 4px
+  }
+  .badge-dot[hidden]{display:none}
+  .note{background:var(--primary-soft);border-radius:10px;padding:8px 12px;font-size:.85rem;color:var(--muted);margin-bottom:14px}
+
+  .card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;border:1px solid var(--line)}
+  .card h2{font-size:1.05rem;margin:0 0 12px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+  .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}
+  .stat .t{color:var(--muted);font-size:.9rem}
+  .stat .v{font-size:1.8rem;font-weight:800;margin:2px 0}
+  .stat .s{font-size:.85rem;color:var(--muted)}
+  .stat.total .v{color:var(--primary)}
+  .stat.done .v{color:var(--ok)}
+  .stat.remain .v{color:var(--warn)}
+  .stat.prog{display:flex;align-items:center;gap:14px}
+  .donut{
+    --p:0;width:92px;height:92px;border-radius:50%;flex:none;display:grid;place-items:center;
+    background:conic-gradient(var(--ok) calc(var(--p)*1%), var(--track) 0)
+  }
+  .donut span{width:70px;height:70px;border-radius:50%;background:var(--card);display:grid;place-items:center;font-weight:800;font-size:1.1rem}
+
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+  .layout{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);gap:12px;margin-bottom:14px}
+  .side{display:flex;flex-direction:column;gap:12px}
+
+  table{width:100%;border-collapse:collapse;font-size:.92rem}
+  th,td{padding:8px 6px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+  th:first-child,td:first-child{text-align:left}
+  th{color:var(--muted);font-weight:600;font-size:.85rem}
+  tfoot td{font-weight:800;border-bottom:none}
+  .tablewrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+
+  .tag{display:inline-flex;align-items:center;gap:6px;font-weight:600}
+  .dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+  .dot.M,.chip.M{background:var(--m)} .dot.A,.chip.A{background:var(--a)} .dot.N,.chip.N{background:var(--n)}
+
+  .chart{display:flex;align-items:flex-end;gap:10px;height:190px;padding-top:6px}
+  .col{flex:1;display:flex;flex-direction:column;align-items:center;height:100%;min-width:0}
+  .bars{flex:1;width:100%;max-width:64px;display:flex;flex-direction:column-reverse;border-radius:8px 8px 0 0;overflow:hidden;background:transparent}
+  .seg.d{background:var(--ok)} .seg.r{background:var(--primary);opacity:.55}
+  .col .val{font-size:.75rem;color:var(--muted);height:18px}
+  .col .lab{font-size:.72rem;color:var(--muted);margin-top:4px;text-align:center}
+  .legend{display:flex;gap:14px;font-size:.82rem;color:var(--muted);margin-top:10px;flex-wrap:wrap}
+  .legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px}
+
+  .cal-wrap{touch-action:pan-y}
+  .cal-head,.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+  .cal-head div{text-align:center;font-size:.8rem;color:var(--muted);padding:4px 0;font-weight:600}
+  .cell{
+    min-height:82px;border:1px solid var(--line);border-radius:10px;background:var(--card);
+    padding:4px;text-align:left;display:flex;flex-direction:column;gap:3px;overflow:hidden;min-width:0;
+    touch-action:manipulation
+  }
+  .cell:hover{border-color:var(--primary)}
+  .cell:active{transform:scale(.97)}
+  .cell.empty{border:none;background:transparent;cursor:default}
+  .cell.today{border:2px solid var(--primary);background:var(--primary-soft)}
+  .cell .dn{font-size:.82rem;font-weight:700}
+  .chip{color:#fff;border-radius:6px;font-size:.7rem;padding:1px 4px;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .chip.done{opacity:.55;text-decoration:line-through}
+  .chip.ongoing{animation:pulse 1.4s infinite}
+  @keyframes pulse{50%{box-shadow:0 0 0 3px rgba(79,70,229,.35)}}
+
+  .next .big{font-size:1.15rem;font-weight:800}
+  .countdown{margin-top:6px;background:var(--primary-soft);border-radius:10px;padding:8px 12px;font-weight:700;color:var(--primary)}
+  .mini{list-style:none;margin:10px 0 0;padding:0;font-size:.88rem;color:var(--muted)}
+  .mini li{padding:4px 0;border-top:1px dashed var(--line)}
+  .empty-msg{color:var(--muted);font-size:.92rem;padding:8px 0}
+
+  .nlist{list-style:none;margin:0;padding:0;max-height:260px;overflow:auto;display:flex;flex-direction:column;gap:8px;-webkit-overflow-scrolling:touch}
+  .nitem{border-left:4px solid var(--primary);background:var(--primary-soft);border-radius:8px;padding:6px 10px;font-size:.88rem}
+  .nitem.ok{border-color:var(--ok);background:var(--ok-soft)}
+  .nitem.warn{border-color:var(--warn);background:var(--warn-soft)}
+  .nitem b{display:block}
+  .nitem small{color:var(--muted)}
+
+  .tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+  .tab{border:1px solid var(--line);background:var(--card);padding:6px 14px;border-radius:999px;font-size:.9rem;touch-action:manipulation}
+  .tab.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+  .rows{display:flex;flex-direction:column;gap:8px}
+  .row{
+    display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr auto;gap:8px;align-items:center;
+    border:1px solid var(--line);border-radius:12px;padding:8px 12px
+  }
+  .row .amt{font-weight:700;text-align:right;display:flex;align-items:center;gap:6px;justify-content:flex-end}
+  .status{display:inline-block;border-radius:999px;padding:2px 10px;font-size:.8rem;font-weight:700;text-align:center}
+  .status.done{background:var(--ok-soft);color:var(--ok)}
+  .status.upcoming{background:var(--warn-soft);color:var(--warn)}
+  .status.ongoing{background:var(--primary-soft);color:var(--primary)}
+
+  .overlay{position:fixed;inset:0;background:rgba(10,15,30,.55);display:flex;align-items:center;justify-content:center;padding:14px;z-index:50}
+  .overlay[hidden]{display:none}
+  .modal{
+    background:var(--card);border-radius:18px;width:100%;max-width:480px;max-height:92dvh;overflow:auto;padding:18px;border:1px solid var(--line);
+    padding-bottom:calc(18px + var(--sab))
+  }
+  .modal h3{margin:0 0 12px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:var(--card)}
+  .shiftrow{display:flex;align-items:center;justify-content:space-between;gap:10px;border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:8px;flex-wrap:wrap}
+  .field{display:flex;flex-direction:column;gap:4px;margin-bottom:12px}
+  .field label{font-size:.88rem;color:var(--muted)}
+  input,select,textarea{border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:10px;width:100%;font-size:16px}
+  textarea{min-height:170px;font-family:ui-monospace,Consolas,monospace;font-size:.8rem}
+  .trow{display:grid;grid-template-columns:70px 1fr 1fr;gap:8px;align-items:center;margin-bottom:8px}
+  .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+  .msg{font-size:.85rem;margin-top:8px;color:var(--muted);min-height:1.2em}
+
+  .toasts{
+    position:fixed;top:calc(12px + var(--sat));right:calc(12px + var(--sar));display:flex;flex-direction:column;gap:8px;z-index:100;
+    width:min(340px,calc(100vw - 24px))
+  }
+  .toast{background:var(--card);border:1px solid var(--line);border-left:5px solid var(--primary);border-radius:12px;box-shadow:0 6px 20px rgba(0,0,0,.2);padding:10px 12px;display:flex;gap:8px;align-items:flex-start;animation:slide .25s}
+  .toast.ok{border-left-color:var(--ok)} .toast.warn{border-left-color:var(--warn)}
+  .toast .body{flex:1;font-size:.9rem}
+  .toast button{border:none;background:none;font-size:1.1rem;color:var(--muted)}
+  @keyframes slide{from{transform:translateX(30px);opacity:0}}
+
+  .swipehint{text-align:center;font-size:.75rem;color:var(--muted);margin-top:4px;display:none}
+
+  @media (max-width:980px){
+    .cards{grid-template-columns:repeat(2,1fr)}
+    .grid2,.layout{grid-template-columns:1fr}
+  }
+  @media (max-width:600px){
+    .app{padding:10px; padding-top:calc(10px + var(--sat)); padding-bottom:calc(10px + var(--sab))}
+    .topbar h1{font-size:1.1rem}
+    .cards{gap:8px}
+    .stat .v{font-size:1.4rem}
+    .cell{min-height:60px;padding:3px}
+    .chip{font-size:.6rem;padding:0 3px}
+    .row{grid-template-columns:1fr 1fr}
+    .row .amt{justify-content:flex-start}
+    .monthnav{width:100%;justify-content:space-between}
+    .trow{grid-template-columns:60px 1fr 1fr}
+    .swipehint{display:block}
+    .toolbar{width:100%}
+    .toolbar .btn{flex:1;justify-content:center}
+  }
+  @media (max-width:380px){
+    .cards{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <h1>?? ตารางเวร & รายได้</h1>
+    <div class="toolbar">
+      <div class="monthnav" id="monthnav">
+        <button class="btn" id="prevM" aria-label="เดือนก่อน">?</button>
+        <div class="label" id="monthLabel"></div>
+        <button class="btn" id="nextM" aria-label="เดือนถัดไป">?</button>
+      </div>
+      <button class="btn" id="todayBtn">วันนี้</button>
+      <button class="btn bell" id="bellBtn" aria-label="การแจ้งเตือน">??<span class="badge-dot" id="bellBadge" hidden>0</span></button>
+      <button class="btn" id="settingsBtn">?? ตั้งค่า</button>
+      <button class="btn" id="dataBtn">?? ข้อมูล</button>
+      <button class="btn install" id="installBtn" hidden>?? ติดตั้งแอป</button>
+    </div>
+  </header>
+  <div class="swipehint">?? ปัดซ้าย/ขวาบนปฏิทินเพื่อเปลี่ยนเดือน ??</div>
+
+  <div class="note">
+    ?? ข้อมูลเวรถูกเก็บในหน้านี้ชั่วคราว (ไม่บันทึกถาวรในเครื่อง) — ถ้าปิดแท็บ/รีเฟรช ข้อมูลจะหาย
+    กด “?? ข้อมูล” เพื่อส่งออกและคัดลอก/ดาวน์โหลดสำรองไว้ แล้วนำเข้ากลับมาใช้ภายหลังได้
+  </div>
+
+  <section class="cards" aria-label="สรุปรายเดือน">
+    <div class="card stat total"><div class="t">?? รายได้รวมทั้งเดือน</div><div class="v" id="vTotal">฿0</div><div class="s" id="sTotal"></div></div>
+    <div class="card stat done"><div class="t">? อยู่เวรแล้ว (ได้เงินแล้ว)</div><div class="v" id="vDone">฿0</div><div class="s" id="sDone"></div></div>
+    <div class="card stat remain"><div class="t">? ยังไม่อยู่ (รอรับ)</div><div class="v" id="vRemain">฿0</div><div class="s" id="sRemain"></div></div>
+    <div class="card stat prog">
+      <div class="donut" id="donut"><span id="pct">0%</span></div>
+      <div><div class="t" style="color:var(--muted);font-size:.9rem">ความคืบหน้า</div><div class="s" id="sProg" style="font-size:.85rem;color:var(--muted)"></div></div>
+    </div>
+  </section>
+
+  <section class="grid2">
+    <div class="card">
+      <h2>?? แยกตามประเภทเวร</h2>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>เวร</th><th>ทั้งหมด</th><th>อยู่แล้ว</th><th>ยังไม่อยู่</th><th>ได้แล้ว</th><th>จะได้</th></tr></thead>
+          <tbody id="breakBody"></tbody>
+          <tfoot id="breakFoot"></tfoot>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <h2>?? รายได้รายสัปดาห์</h2>
+      <div class="chart" id="chart"></div>
+      <div class="legend"><span><i style="background:var(--ok)"></i>ได้แล้ว</span><span><i style="background:var(--primary);opacity:.55"></i>ยังไม่ได้</span></div>
+    </div>
+  </section>
+
+  <section class="layout">
+    <div class="card">
+      <h2>??? ปฏิทินเวร <small style="font-weight:400;color:var(--muted);font-size:.8rem">แตะวันที่เพื่อเพิ่ม/ลบเวร</small></h2>
+      <div class="cal-wrap" id="calWrap">
+        <div class="cal-head" id="calHead"></div>
+        <div class="cal-grid" id="calGrid"></div>
+      </div>
+      <div class="legend">
+        <span><i style="background:var(--m)"></i>เช้า</span>
+        <span><i style="background:var(--a)"></i>บ่าย</span>
+        <span><i style="background:var(--n)"></i>ดึก</span>
+        <span>ขีดฆ่า = อยู่แล้ว</span>
+      </div>
+    </div>
+    <div class="side">
+      <div class="card next">
+        <h2>? เวรถัดไป</h2>
+        <div id="nextBox"></div>
+      </div>
+      <div class="card" id="notifCard">
+        <h2>?? การแจ้งเตือน <button class="btn sm" id="clearNotif">ล้าง</button></h2>
+        <ul class="nlist" id="nlist"></ul>
+        <div class="actions"><button class="btn sm" id="browserNotif">เปิดแจ้งเตือนของเบราว์เซอร์</button></div>
+        <div class="msg" id="browserMsg"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card" style="margin-bottom:24px">
+    <h2>?? รายการเวรเดือนนี้</h2>
+    <div class="tabs" id="tabs"></div>
+    <div class="rows" id="rows"></div>
+  </section>
+</div>
+
+<div class="overlay" id="dayModal" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="dayTitle">
+    <h3><span id="dayTitle"></span><button class="btn sm" data-close>ปิด</button></h3>
+    <div id="dayBody"></div>
+  </div>
+</div>
+
+<div class="overlay" id="settingsModal" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="setTitle">
+    <h3><span id="setTitle">?? ตั้งค่า</span><button class="btn sm" data-close>ปิด</button></h3>
+    <div class="field"><label for="setRate">ค่าเวรต่อเวร (บาท)</label><input type="number" id="setRate" min="0" step="1" inputmode="numeric"></div>
+    <div class="field">
+      <label for="setRemind">แจ้งเตือนล่วงหน้าก่อนเริ่มเวร</label>
+      <select id="setRemind">
+        <option value="15">15 นาที</option><option value="30">30 นาที</option><option value="60">1 ชั่วโมง</option>
+        <option value="120">2 ชั่วโมง</option><option value="360">6 ชั่วโมง</option><option value="720">12 ชั่วโมง</option>
+        <option value="1440">1 วัน</option>
+      </select>
+    </div>
+    <div class="field"><label>เวลาเวร (เริ่ม – สิ้นสุด)</label></div>
+    <div class="trow"><b>?? เช้า</b><input type="time" id="tMs"><input type="time" id="tMe"></div>
+    <div class="trow"><b>?? บ่าย</b><input type="time" id="tAs"><input type="time" id="tAe"></div>
+    <div class="trow"><b>?? ดึก</b><input type="time" id="tNs"><input type="time" id="tNe"></div>
+    <div class="actions"><button class="btn primary" id="saveSettings">บันทึก</button></div>
+    <div class="msg" id="setMsg"></div>
+  </div>
+</div>
+
+<div class="overlay" id="dataModal" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="dataTitle">
+    <h3><span id="dataTitle">?? สำรอง / นำเข้าข้อมูล</span><button class="btn sm" data-close>ปิด</button></h3>
+    <textarea id="dataText" spellcheck="false" placeholder="กด “ส่งออก” เพื่อสร้างข้อมูลสำรอง หรือวางข้อมูลที่เคยสำรองไว้ที่นี่แล้วกด “นำเข้า”"></textarea>
+    <div class="actions">
+      <button class="btn" id="exportBtn">ส่งออก</button>
+      <button class="btn" id="copyBtn">คัดลอก</button>
+      <button class="btn" id="downloadBtn">ดาวน์โหลดไฟล์</button>
+      <button class="btn primary" id="importBtn">นำเข้า</button>
+    </div>
+    <div class="actions">
+      <button class="btn" id="sampleBtn">เพิ่มข้อมูลตัวอย่าง (เดือนที่เลือก)</button>
+      <button class="btn danger" id="clearAllBtn">ล้างข้อมูลทั้งหมด</button>
+    </div>
+    <div class="msg" id="dataMsg"></div>
+  </div>
+</div>
+
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ---------- PWA manifest (embedded, no external file needed) ---------- */
+  try {
+    const manifest = {
+      name: "ตารางเวร & รายได้", short_name: "เวร&รายได้", start_url: ".",
+      display: "standalone", background_color: "#f3f5fa", theme_color: "#4f46e5",
+      icons: [{
+        src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%234f46e5'/%3E%3Ctext x='50' y='65' font-size='55' text-anchor='middle' fill='white' font-family='Arial'%3E%F0%9F%A9%BA%3C/text%3E%3C/svg%3E",
+        sizes: "100x100", type: "image/svg+xml"
+      }]
+    };
+    const blob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' });
+    document.getElementById('manifestLink').href = URL.createObjectURL(blob);
+  } catch (e) { /* manifest optional, ignore if unsupported */ }
+
+  /* ---------- Constants ---------- */
+  const MONTHS = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+  const MONTHS_S = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  const WD_S = ['อา','จ','อ','พ','พฤ','ศ','ส'];
+  const WD_L = ['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'];
+  const TYPES = ['M','A','N'];
+  const TNAME = { M:'เช้า', A:'บ่าย', N:'ดึก' };
+  const TICON = { M:'??', A:'??', N:'??' };
+
+  /* ---------- State (in-memory only, per sandbox rules) ---------- */
+  const now0 = new Date();
+  const state = {
+    view: new Date(now0.getFullYear(), now0.getMonth(), 1),
+    shifts: [],
+    settings: {
+      rate: 400,
+      remind: 60,
+      times: {
+        M: { start:'08:00', end:'16:00' },
+        A: { start:'16:00', end:'00:00' },
+        N: { start:'00:00', end:'08:00' }
+      }
+    },
+    notifs: [],
+    unread: 0,
+    notified: new Set(),
+    filter: 'all',
+    selectedDate: null,
+    nextRef: null,
+    clearArmed: false,
+    dirty: false
+  };
+
+  /* ---------- Helpers ---------- */
+  const $ = (s) => document.querySelector(s);
+  const pad = (n) => String(n).padStart(2, '0');
+  const dkey = (d) => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+  const parseKey = (k) => { const p = k.split('-').map(Number); return new Date(p[0], p[1] - 1, p[2]); };
+  const money = (n) => '฿' + Number(n).toLocaleString('th-TH');
+  const sid = (s) => s.date + '|' + s.type;
+  const dateTH = (d) => WD_S[d.getDay()] + ' ' + d.getDate() + ' ' + MONTHS_S[d.getMonth()] + ' ' + (d.getFullYear() + 543);
+  const hhmm = (d) => pad(d.getHours()) + ':' + pad(d.getMinutes());
+
+  function el(tag, props, children) {
+    const e = document.createElement(tag);
+    if (props) {
+      Object.keys(props).forEach((k) => {
+        const v = props[k];
+        if (k === 'class') e.className = v;
+        else if (k === 'text') e.textContent = v;
+        else if (k.indexOf('on') === 0) e.addEventListener(k.slice(2), v);
+        else e.setAttribute(k, v);
+      });
+    }
+    (children || []).forEach((c) => { if (c) e.appendChild(typeof c === 'string' ? document.createTextNode(c) : c); });
+    return e;
+  }
+
+  function fmtDur(ms, withSec) {
+    let t = Math.max(0, Math.floor(ms / 1000));
+    const d = Math.floor(t / 86400); t %= 86400;
+    const h = Math.floor(t / 3600); t %= 3600;
+    const m = Math.floor(t / 60); const s = t % 60;
+    const parts = [];
+    if (d) parts.push(d + ' วัน');
+    if (h) parts.push(h + ' ชม.');
+    if (m || (!d && !h && !withSec)) parts.push(m + ' นาที');
+    if (withSec && !d) parts.push(s + ' วินาที');
+    return parts.join(' ');
+  }
+
+  function range(s) {
+    const p = s.date.split('-').map(Number);
+    const t = state.settings.times[s.type];
+    const a = t.start.split(':').map(Number);
+    const b = t.end.split(':').map(Number);
+    const start = new Date(p[0], p[1] - 1, p[2], a[0], a[1]);
+    let end = new Date(p[0], p[1] - 1, p[2], b[0], b[1]);
+    if (end <= start) end = new Date(p[0], p[1] - 1, p[2] + 1, b[0], b[1]);
+    return { start: start, end: end };
+  }
+
+  function statusOf(s, now) {
+    const r = range(s);
+    if (now >= r.end) return 'done';
+    if (now >= r.start) return 'ongoing';
+    return 'upcoming';
+  }
+  const STATUS_TXT = { done:'อยู่แล้ว', ongoing:'กำลังอยู่เวร', upcoming:'ยังไม่อยู่' };
+
+  const has = (date, type) => state.shifts.some((s) => s.date === date && s.type === type);
+  function addShift(date, type) { if (!has(date, type)) { state.shifts.push({ date: date, type: type }); state.dirty = true; } }
+  function removeShift(date, type) {
+    state.shifts = state.shifts.filter((s) => !(s.date === date && s.type === type));
+    ['r|', 's|', 'e|'].forEach((p) => state.notified.delete(p + date + '|' + type));
+    state.dirty = true;
+  }
+
+  function monthShifts() {
+    const prefix = state.view.getFullYear() + '-' + pad(state.view.getMonth() + 1) + '-';
+    return state.shifts
+      .filter((s) => s.date.indexOf(prefix) === 0)
+      .map((s) => Object.assign({}, s, range(s)))
+      .sort((a, b) => a.start - b.start);
+  }
+
+  /* ---------- Notifications ---------- */
+  function pushNotif(title, msg, level) {
+    const n = { title: title, msg: msg, level: level || 'info', time: new Date() };
+    state.notifs.unshift(n);
+    if (state.notifs.length > 30) state.notifs.pop();
+    state.unread++;
+    showToast(n);
+    renderNotifs();
+    try {
+      if ('Notification' in window && Notification.permission === 'granted') new Notification(title, { body: msg });
+    } catch (e) { /* not supported in sandbox */ }
+  }
+
+  function showToast(n) {
+    const box = $('#toasts');
+    const t = el('div', { class: 'toast ' + (n.level === 'info' ? '' : n.level), role: 'status' }, [
+      el('div', { class: 'body' }, [el('b', { text: n.title }), el('div', { text: n.msg })]),
+      el('button', { 'aria-label': 'ปิด', text: '?', onclick: () => t.remove() })
+    ]);
+    box.appendChild(t);
+    setTimeout(() => { if (t.parentNode) t.remove(); }, 9000);
+  }
+
+  function checkNotifications(now) {
+    const remindMs = state.settings.remind * 60000;
+    state.shifts.forEach((s) => {
+      const r = range(s); const id = sid(s);
+      const label = TICON[s.type] + ' เวร' + TNAME[s.type];
+      const diff = r.start - now;
+
+      if (diff > 0 && diff <= remindMs && !state.notified.has('r|' + id)) {
+        state.notified.add('r|' + id);
+        pushNotif('ใกล้ถึงเวลาเข้าเวร', label + ' ' + dateTH(r.start) + ' เริ่ม ' + hhmm(r.start) + ' (อีก ' + fmtDur(diff) + ')', 'warn');
+      }
+      if (now >= r.start && now < r.end && !state.notified.has('s|' + id)) {
+        state.notified.add('s|' + id);
+        pushNotif('เริ่มเวรแล้ว', label + ' ' + hhmm(r.start) + ' – ' + hhmm(r.end), 'info');
+      }
+      if (now >= r.end && !state.notified.has('e|' + id)) {
+        state.notified.add('e|' + id);
+        state.notified.add('s|' + id); state.notified.add('r|' + id);
+        if (now - r.end < 6 * 3600000) pushNotif('จบเวรแล้ว ??', label + ' ' + dateTH(r.start) + ' ได้รับ ' + money(state.settings.rate), 'ok');
+      }
+    });
+  }
+
+  /* ---------- Rendering ---------- */
+  function renderAll() {
+    const now = new Date();
+    $('#monthLabel').textContent = MONTHS[state.view.getMonth()] + ' ' + (state.view.getFullYear() + 543);
+    renderDashboard(now);
+    renderCalendar(now);
+    renderNext(now);
+    renderList(now);
+    renderNotifs();
+    if (state.selectedDate && !$('#dayModal').hidden) renderDayModal();
+  }
+
+  function renderDashboard(now) {
+    const list = monthShifts();
+    const rate = state.settings.rate;
+    const cnt = { total: list.length, done: 0, ongoing: 0, upcoming: 0 };
+    const byType = {};
+    TYPES.forEach((t) => { byType[t] = { total: 0, done: 0, remain: 0 }; });
+
+    list.forEach((s) => {
+      const st = statusOf(s, now);
+      cnt[st]++;
+      byType[s.type].total++;
+      if (st === 'done') byType[s.type].done++; else byType[s.type].remain++;
+    });
+    const remain = cnt.ongoing + cnt.upcoming;
+    const pct = cnt.total ? Math.round((cnt.done / cnt.total) * 100) : 0;
+
+    $('#vTotal').textContent = money(cnt.total * rate);
+    $('#sTotal').textContent = cnt.total + ' เวร ? ' + money(rate);
+    $('#vDone').textContent = money(cnt.done * rate);
+    $('#sDone').textContent = cnt.done + ' เวร (เช้า ' + byType.M.done + ' ? บ่าย ' + byType.A.done + ' ? ดึก ' + byType.N.done + ')';
+    $('#vRemain').textContent = money(remain * rate);
+    $('#sRemain').textContent = remain + ' เวร' + (cnt.ongoing ? ' (กำลังอยู่เวร ' + cnt.ongoing + ')' : '');
+    $('#donut').style.setProperty('--p', pct);
+    $('#pct').textContent = pct + '%';
+    $('#sProg').textContent = 'อยู่แล้ว ' + cnt.done + ' / ' + cnt.total + ' เวร';
+
+    const body = $('#breakBody'); body.textContent = '';
+    TYPES.forEach((t) => {
+      const b = byType[t];
+      body.appendChild(el('tr', null, [
+        el('td', null, [el('span', { class: 'tag' }, [el('i', { class: 'dot ' + t }), TNAME[t]])]),
+        el('td', { text: String(b.total) }), el('td', { text: String(b.done) }), el('td', { text: String(b.remain) }),
+        el('td', { text: money(b.done * rate) }), el('td', { text: money(b.remain * rate) })
+      ]));
+    });
+    const foot = $('#breakFoot'); foot.textContent = '';
+    foot.appendChild(el('tr', null, [
+      el('td', { text: 'รวม' }), el('td', { text: String(cnt.total) }), el('td', { text: String(cnt.done) }), el('td', { text: String(remain) }),
+      el('td', { text: money(cnt.done * rate) }), el('td', { text: money(remain * rate) })
+    ]));
+
+    const y = state.view.getFullYear(), m = state.view.getMonth();
+    const days = new Date(y, m + 1, 0).getDate();
+    const weeks = Math.ceil(days / 7);
+    const data = [];
+    for (let w = 0; w < weeks; w++) data.push({ d: 0, r: 0, from: w * 7 + 1, to: Math.min(days, w * 7 + 7) });
+    list.forEach((s) => {
+      const day = parseKey(s.date).getDate();
+      const w = Math.floor((day - 1) / 7);
+      if (statusOf(s, now) === 'done') data[w].d += rate; else data[w].r += rate;
+    });
+    const max = Math.max(1, ...data.map((x) => x.d + x.r));
+    const chart = $('#chart'); chart.textContent = '';
+    data.forEach((x) => {
+      const bars = el('div', { class: 'bars' });
+      if (x.d) bars.appendChild(el('div', { class: 'seg d', style: 'height:' + (x.d / max * 100) + '%' }));
+      if (x.r) bars.appendChild(el('div', { class: 'seg r', style: 'height:' + (x.r / max * 100) + '%' }));
+      chart.appendChild(el('div', { class: 'col' }, [
+        el('div', { class: 'val', text: (x.d + x.r) ? money(x.d + x.r) : '' }),
+        el('div', { style: 'flex:1;width:100%;display:flex;align-items:flex-end;justify-content:center' }, [bars]),
+        el('div', { class: 'lab', text: x.from + '–' + x.to })
+      ]));
+    });
+  }
+
+  function renderCalendar(now) {
+    const head = $('#calHead');
+    if (!head.childNodes.length) WD_S.forEach((w) => head.appendChild(el('div', { text: w })));
+    const grid = $('#calGrid'); grid.textContent = '';
+    const y = state.view.getFullYear(), m = state.view.getMonth();
+    const startDay = new Date(y, m, 1).getDay();
+    const days = new Date(y, m + 1, 0).getDate();
+    const todayKey = dkey(now);
+
+    for (let i = 0; i < startDay; i++) grid.appendChild(el('div', { class: 'cell empty' }));
+    for (let d = 1; d <= days; d++) {
+      const key = y + '-' + pad(m + 1) + '-' + pad(d);
+      const chips = [];
+      TYPES.forEach((t) => {
+        if (has(key, t)) {
+          const st = statusOf({ date: key, type: t }, now);
+          chips.push(el('span', { class: 'chip ' + t + ' ' + st, text: (st === 'done' ? '? ' : '') + TNAME[t] }));
+        }
+      });
+      grid.appendChild(el('button', {
+        class: 'cell' + (key === todayKey ? ' today' : ''),
+        'aria-label': 'จัดการเวรวันที่ ' + d,
+        onclick: () => openDay(key)
+      }, [el('span', { class: 'dn', text: String(d) })].concat(chips)));
+    }
+  }
+
+  function renderNext(now) {
+    const box = $('#nextBox'); box.textContent = '';
+    const up = state.shifts.map((s) => Object.assign({}, s, range(s)))
+      .filter((x) => x.end > now).sort((a, b) => a.start - b.start);
+    if (!up.length) {
+      state.nextRef = null;
+      box.appendChild(el('div', { class: 'empty-msg', text: 'ยังไม่มีเวรที่รออยู่ — แตะวันที่ในปฏิทินเพื่อเพิ่มเวร' }));
+      return;
+    }
+    const f = up[0];
+    state.nextRef = f;
+    box.appendChild(el('div', { class: 'big', text: TICON[f.type] + ' เวร' + TNAME[f.type] }));
+    box.appendChild(el('div', { text: dateTH(f.start) + ' ? ' + hhmm(f.start) + ' – ' + hhmm(f.end) }));
+    box.appendChild(el('div', { class: 'countdown', id: 'countdown' }));
+    if (up.length > 1) {
+      const ul = el('ul', { class: 'mini' });
+      up.slice(1, 4).forEach((x) => ul.appendChild(el('li', { text: TICON[x.type] + ' ' + TNAME[x.type] + ' ? ' + dateTH(x.start) + ' ' + hhmm(x.start) })));
+      box.appendChild(ul);
+    }
+    updateCountdown(now);
+  }
+
+  function updateCountdown(now) {
+    const c = $('#countdown'); const f = state.nextRef;
+    if (!c || !f) return;
+    c.textContent = now < f.start
+      ? 'เริ่มในอีก ' + fmtDur(f.start - now, true)
+      : '?? กำลังอยู่เวร ? จบในอีก ' + fmtDur(f.end - now, true);
+  }
+
+  function renderList(now) {
+    const tabs = $('#tabs'); tabs.textContent = '';
+    const list = monthShifts().map((s) => Object.assign(s, { st: statusOf(s, now) }));
+    const counts = {
+      all: list.length,
+      done: list.filter((s) => s.st === 'done').length,
+      pending: list.filter((s) => s.st !== 'done').length
+    };
+    [['all', 'ทั้งหมด'], ['done', 'อยู่แล้ว'], ['pending', 'ยังไม่อยู่']].forEach((t) => {
+      tabs.appendChild(el('button', {
+        class: 'tab' + (state.filter === t[0] ? ' active' : ''),
+        text: t[1] + ' (' + counts[t[0]] + ')',
+        onclick: () => { state.filter = t[0]; renderList(new Date()); }
+      }));
+    });
+    const rows = $('#rows'); rows.textContent = '';
+    const shown = list.filter((s) => state.filter === 'all' || (state.filter === 'done' ? s.st === 'done' : s.st !== 'done'));
+    if (!shown.length) { rows.appendChild(el('div', { class: 'empty-msg', text: 'ไม่มีรายการ' })); return; }
+    shown.forEach((s) => {
+      rows.appendChild(el('div', { class: 'row' }, [
+        el('div', { text: dateTH(s.start) }),
+        el('div', null, [el('span', { class: 'tag' }, [el('i', { class: 'dot ' + s.type }), TNAME[s.type]])]),
+        el('div', { text: hhmm(s.start) + ' – ' + hhmm(s.end) }),
+        el('div', null, [el('span', { class: 'status ' + s.st, text: STATUS_TXT[s.st] })]),
+        el('div', { class: 'amt' }, [
+          money(state.settings.rate) + ' ',
+          el('button', { class: 'btn sm danger', 'aria-label': 'ลบเวร', text: '??', onclick: () => { removeShift(s.date, s.type); renderAll(); } })
+        ])
+      ]));
+    });
+  }
+
+  function renderNotifs() {
+    const ul = $('#nlist'); ul.textContent = '';
+    if (!state.notifs.length) ul.appendChild(el('li', { class: 'empty-msg', text: 'ยังไม่มีการแจ้งเตือน' }));
+    state.notifs.forEach((n) => {
+      ul.appendChild(el('li', { class: 'nitem ' + (n.level === 'info' ? '' : n.level) }, [
+        el('b', { text: n.title }), el('span', { text: n.msg }), el('small', { text: ' ? ' + hhmm(n.time) })
+      ]));
+    });
+    const b = $('#bellBadge');
+    b.hidden = state.unread === 0;
+    b.textContent = String(state.unread);
+  }
+
+  /* ---------- Day modal ---------- */
+  function openDay(key) { state.selectedDate = key; renderDayModal(); openModal('#dayModal'); }
+
+  function renderDayModal() {
+    const d = parseKey(state.selectedDate);
+    $('#dayTitle').textContent = 'วัน' + WD_L[d.getDay()] + 'ที่ ' + d.getDate() + ' ' + MONTHS[d.getMonth()] + ' ' + (d.getFullYear() + 543);
+    const body = $('#dayBody'); body.textContent = '';
+    const now = new Date();
+    TYPES.forEach((t) => {
+      const on = has(state.selectedDate, t);
+      const t0 = state.settings.times[t];
+      const info = [el('b', { text: TICON[t] + ' เวร' + TNAME[t] }), el('div', { style: 'font-size:.85rem;color:var(--muted)', text: t0.start + ' – ' + t0.end + ' ? ' + money(state.settings.rate) })];
+      if (on) {
+        const st = statusOf({ date: state.selectedDate, type: t }, now);
+        info.push(el('span', { class: 'status ' + st, text: STATUS_TXT[st] }));
+      }
+      body.appendChild(el('div', { class: 'shiftrow' }, [
+        el('div', null, info),
+        el('button', {
+          class: 'btn ' + (on ? 'danger' : 'primary'),
+          text: on ? 'ลบเวร' : 'เพิ่มเวร',
+          onclick: () => {
+            if (on) removeShift(state.selectedDate, t); else addShift(state.selectedDate, t);
+            checkNotifications(new Date());
+            renderAll();
+          }
+        })
+      ]));
+    });
+  }
+
+  /* ---------- Modals ---------- */
+  function openModal(sel) { $(sel).hidden = false; }
+  function closeModals() { document.querySelectorAll('.overlay').forEach((o) => { o.hidden = true; }); }
+
+  /* ---------- Settings ---------- */
+  function openSettings() {
+    const s = state.settings;
+    $('#setRate').value = s.rate;
+    $('#setRemind').value = String(s.remind);
+    $('#tMs').value = s.times.M.start; $('#tMe').value = s.times.M.end;
+    $('#tAs').value = s.times.A.start; $('#tAe').value = s.times.A.end;
+    $('#tNs').value = s.times.N.start; $('#tNe').value = s.times.N.end;
+    $('#setMsg').textContent = '';
+    openModal('#settingsModal');
+  }
+
+  function saveSettings() {
+    const rate = Number($('#setRate').value);
+    const ids = { M: ['#tMs', '#tMe'], A: ['#tAs', '#tAe'], N: ['#tNs', '#tNe'] };
+    if (!isFinite(rate) || rate < 0) { $('#setMsg').textContent = 'กรุณากรอกค่าเวรให้ถูกต้อง'; return; }
+    for (const t of TYPES) {
+      if (!$(ids[t][0]).value || !$(ids[t][1]).value) { $('#setMsg').textContent = 'กรุณากรอกเวลาให้ครบ'; return; }
+    }
+    state.settings.rate = Math.round(rate);
+    state.settings.remind = Number($('#setRemind').value) || 60;
+    TYPES.forEach((t) => { state.settings.times[t] = { start: $(ids[t][0]).value, end: $(ids[t][1]).value }; });
+    state.notified.clear();
+    state.dirty = true;
+    checkNotifications(new Date());
+    renderAll();
+    closeModals();
+  }
+
+  /* ---------- Data export / import ---------- */
+  function exportJSON() {
+    return JSON.stringify({ version: 1, settings: state.settings, shifts: state.shifts }, null, 2);
+  }
+  const TIME_RE = /^([01]\d|2[0-3]):[0-5]\d$/;
+
+  function importJSON(text) {
+    const msg = $('#dataMsg');
+    try {
+      const obj = JSON.parse(text);
+      if (!obj || !Array.isArray(obj.shifts)) throw new Error('รูปแบบข้อมูลไม่ถูกต้อง');
+      const seen = new Set(); const clean = [];
+      obj.shifts.forEach((s) => {
+        if (s && typeof s.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s.date) && TYPES.indexOf(s.type) > -1) {
+          const k = s.date + '|' + s.type;
+          if (!seen.has(k)) { seen.add(k); clean.push({ date: s.date, type: s.type }); }
+        }
+      });
+      if (obj.settings && typeof obj.settings === 'object') {
+        const st = obj.settings;
+        if (typeof st.rate === 'number' && st.rate >= 0) state.settings.rate = Math.round(st.rate);
+        if (typeof st.remind === 'number' && st.remind > 0) state.settings.remind = st.remind;
+        if (st.times) TYPES.forEach((t) => {
+          const x = st.times[t];
+          if (x && TIME_RE.test(x.start) && TIME_RE.test(x.end)) state.settings.times[t] = { start: x.start, end: x.end };
+        });
+      }
+      state.shifts = clean;
+      state.notified.clear();
+      state.dirty = false;
+      checkNotifications(new Date());
+      renderAll();
+      msg.textContent = '? นำเข้าสำเร็จ ' + clean.length + ' เวร';
+    } catch (e) {
+      msg.textContent = '? นำเข้าไม่สำเร็จ: ' + e.message;
+    }
+  }
+
+  function addSample() {
+    const y = state.view.getFullYear(), m = state.view.getMonth();
+    const days = new Date(y, m + 1, 0).getDate();
+    for (let d = 1; d <= days; d++) {
+      if (d % 2 === 1) addShift(y + '-' + pad(m + 1) + '-' + pad(d), TYPES[Math.floor(d / 2) % 3]);
+    }
+    state.notified.clear();
+    checkNotifications(new Date());
+    renderAll();
+    $('#dataMsg').textContent = '? เพิ่มข้อมูลตัวอย่างแล้ว';
+  }
+
+  /* ---------- Swipe gesture for month navigation (mobile) ---------- */
+  function bindSwipe() {
+    const wrap = $('#calWrap');
+    let sx = 0, sy = 0, tracking = false;
+    wrap.addEventListener('touchstart', (e) => {
+      if (e.touches.length !== 1) return;
+      sx = e.touches[0].clientX; sy = e.touches[0].clientY; tracking = true;
+    }, { passive: true });
+    wrap.addEventListener('touchend', (e) => {
+      if (!tracking) return; tracking = false;
+      const dx = e.changedTouches[0].clientX - sx;
+      const dy = e.changedTouches[0].clientY - sy;
+      if (Math.abs(dx) > 55 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+        if (dx < 0) state.view = new Date(state.view.getFullYear(), state.view.getMonth() + 1, 1);
+        else state.view = new Date(state.view.getFullYear(), state.view.getMonth() - 1, 1);
+        renderAll();
+      }
+    }, { passive: true });
+  }
+
+  /* ---------- Install prompt (Add to Home Screen) ---------- */
+  let deferredPrompt = null;
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    $('#installBtn').hidden = false;
+  });
+  window.addEventListener('appinstalled', () => { $('#installBtn').hidden = true; deferredPrompt = null; });
+
+  /* ---------- Warn before leaving if there is unsaved data ---------- */
+  window.addEventListener('beforeunload', (e) => {
+    if (state.dirty) { e.preventDefault(); e.returnValue = ''; }
+  });
+
+  /* ---------- Events ---------- */
+  function bind() {
+    $('#prevM').addEventListener('click', () => { state.view = new Date(state.view.getFullYear(), state.view.getMonth() - 1, 1); renderAll(); });
+    $('#nextM').addEventListener('click', () => { state.view = new Date(state.view.getFullYear(), state.view.getMonth() + 1, 1); renderAll(); });
+    $('#todayBtn').addEventListener('click', () => { const n = new Date(); state.view = new Date(n.getFullYear(), n.getMonth(), 1); renderAll(); });
+    $('#bellBtn').addEventListener('click', () => {
+      state.unread = 0; renderNotifs();
+      $('#notifCard').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+    $('#clearNotif').addEventListener('click', () => { state.notifs = []; state.unread = 0; renderNotifs(); });
+    $('#settingsBtn').addEventListener('click', openSettings);
+    $('#saveSettings').addEventListener('click', saveSettings);
+    $('#dataBtn').addEventListener('click', () => { $('#dataMsg').textContent = ''; openModal('#dataModal'); });
+    $('#installBtn').addEventListener('click', async () => {
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      try { await deferredPrompt.userChoice; } catch (e) { /* ignore */ }
+      deferredPrompt = null; $('#installBtn').hidden = true;
+    });
+
+    document.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', closeModals));
+    document.querySelectorAll('.overlay').forEach((o) => o.addEventListener('click', (e) => { if (e.target === o) closeModals(); }));
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModals(); });
+
+    $('#exportBtn').addEventListener('click', () => { $('#dataText').value = exportJSON(); $('#dataMsg').textContent = 'สร้างข้อมูลสำรองแล้ว — กดคัดลอกหรือดาวน์โหลดเก็บไว้ได้เลย'; state.dirty = false; });
+    $('#importBtn').addEventListener('click', () => importJSON($('#dataText').value));
+    $('#copyBtn').addEventListener('click', () => {
+      const ta = $('#dataText');
+      if (!ta.value) ta.value = exportJSON();
+      ta.select();
+      ta.setSelectionRange(0, ta.value.length);
+      let ok = false;
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(ta.value).then(
+            () => { $('#dataMsg').textContent = '? คัดลอกแล้ว'; state.dirty = false; },
+            () => { $('#dataMsg').textContent = 'คัดลอกอัตโนมัติไม่ได้ — ข้อความถูกเลือกไว้แล้ว กด Ctrl/Cmd + C'; }
+          );
+          ok = true;
+        }
+      } catch (e) { /* fall through */ }
+      if (!ok) $('#dataMsg').textContent = 'ข้อความถูกเลือกไว้แล้ว กด Ctrl/Cmd + C เพื่อคัดลอก';
+    });
+    $('#downloadBtn').addEventListener('click', () => {
+      try {
+        const blob = new Blob([exportJSON()], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = 'shift-backup.json';
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        $('#dataMsg').textContent = 'กำลังดาวน์โหลดไฟล์… (หากไม่เริ่มให้ใช้ปุ่มคัดลอกแทน)';
+        state.dirty = false;
+      } catch (e) {
+        $('#dataMsg').textContent = 'ดาวน์โหลดไม่ได้ในสภาพแวดล้อมนี้ — ใช้ปุ่มคัดลอกแทน';
+      }
+    });
+    $('#sampleBtn').addEventListener('click', addSample);
+    $('#clearAllBtn').addEventListener('click', () => {
+      const b = $('#clearAllBtn');
+      if (!state.clearArmed) {
+        state.clearArmed = true; b.textContent = 'กดอีกครั้งเพื่อยืนยันการล้าง';
+        setTimeout(() => { state.clearArmed = false; b.textContent = 'ล้างข้อมูลทั้งหมด'; }, 4000);
+        return;
+      }
+      state.shifts = []; state.notified.clear(); state.clearArmed = false; state.dirty = false;
+      b.textContent = 'ล้างข้อมูลทั้งหมด';
+      $('#dataText').value = '';
+      $('#dataMsg').textContent = 'ล้างข้อมูลแล้ว';
+      renderAll();
+    });
+
+    $('#browserNotif').addEventListener('click', () => {
+      const msg = $('#browserMsg');
+      try {
+        if (!('Notification' in window)) { msg.textContent = 'เบราว์เซอร์นี้ไม่รองรับ — ใช้การแจ้งเตือนในหน้าเว็บแทนได้ตามปกติ'; return; }
+        Notification.requestPermission().then((p) => {
+          msg.textContent = p === 'granted' ? '? เปิดใช้งานแล้ว' : 'ไม่ได้รับอนุญาต — ยังใช้การแจ้งเตือนในหน้าเว็บได้ตามปกติ';
+        }).catch(() => { msg.textContent = 'ไม่สามารถขออนุญาตได้ในสภาพแวดล้อมนี้'; });
+      } catch (e) { msg.textContent = 'ไม่สามารถขออนุญาตได้ในสภาพแวดล้อมนี้'; }
+    });
+
+    bindSwipe();
+  }
+
+  /* ---------- Main loop ---------- */
+  let lastMinute = -1;
+  function tick() {
+    const now = new Date();
+    updateCountdown(now);
+    if (now.getMinutes() !== lastMinute) {
+      lastMinute = now.getMinutes();
+      checkNotifications(now);
+      renderAll();
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    bind();
+    renderAll();
+    tick();
+    setInterval(tick, 1000);
+  });
+})();
+</script>
+</body>
+</html>
